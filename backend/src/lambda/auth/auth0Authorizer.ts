@@ -6,7 +6,6 @@ import { verify, decode } from 'jsonwebtoken'
 import { createLogger } from '../../utils/logger'
 import { Jwt } from '../../auth/Jwt'
 import { JwtPayload } from '../../auth/JwtPayload'
-import { certToPEM } from '../utils'
 
 const logger = createLogger('auth')
 
