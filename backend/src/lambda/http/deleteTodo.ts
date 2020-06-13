@@ -1,43 +1,25 @@
 import 'source-map-support/register'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+import { deleteTodo } from '../../businessLogic/todos-controller';
+import { createLogger } from '../../utils/logger';
+import { createHandler } from './createTodo';
+import { getTokenFromEvent } from '../../auth/utils'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-const AWS = require('aws-sdk');
+const logger = createLogger('deleteTodoHandler');
 
-const todosTable = process.env.TODOS_TABLE
-
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const deleteHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  logger.info('Delete todo event', event)
   const todoId = event.pathParameters.todoId
-  const documentClient = new AWS.DynamoDB.DocumentClient();
+  const jwtToken = getTokenFromEvent(event)
 
-  const item = {
-    Key: {
-      todoId: {
-        S: todoId // My partition key is a number.
-      }
-    },
-    TableName: todosTable,
-  };
+  await deleteTodo(todoId, jwtToken)
 
-  documentClient.deleteItem(item, function(err) {
-    if (err) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
-        },
-        body: ''
-      }
-    }
-    else {
-      return {
-        statusCode: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
-        },
-        body: ''
-      }
-    }
-  });
+  return {
+    statusCode: 204,
+    body: 'Item deleted'
+  }
 }
+
+export const handler = middy(deleteHandler).use(cors({ credentials: true}),)

@@ -1,50 +1,27 @@
 import 'source-map-support/register'
-
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
-var AWS = require('aws-sdk');
-
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
+import { update } from '../../businessLogic/todos-controller'
+import { createLogger } from '../../utils/logger'
+import { getTokenFromEvent } from '../utils'
 
-const todosTable = process.env.TODOS_TABLE
+const logger = createLogger('updateTodoHandler');
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const updateTodosHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  logger.info('Update a todo', event);
   const todoId = event.pathParameters.todoId
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-  const documentClient = new AWS.DynamoDB.DocumentClient();
-
+  const jwtToken = getTokenFromEvent(event);
+  
   // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
-  var params = {
-    TableName: todosTable,
-    Key: { todoId : todoId },
-    UpdateExpression: 'set name = :name, dueDate = :dueDate, done = :done',
-    ExpressionAttributeValues: {
-      ':name' : updatedTodo.name,
-      ':dueDate' : updatedTodo.dueDate,
-      ':done' : updatedTodo.done,
-    }
-  };
-
-
-  documentClient.update(params, function(err, data) {
-    if (err) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
-        },
-        body: ''
-      }
-    }
-    else {
-      return {
-        statusCode: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
-        },
-        body: ''
-      }
-    }
-  });
+  await update(todoId, updatedTodo, jwtToken);
+  
+  return {
+    statusCode: 204,
+    body: ''
+  }
 }
+
+export const handler = middy(updateTodosHandler).use(cors({ credentials: true }))

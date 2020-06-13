@@ -59,7 +59,7 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
   let key = await getSigningKey(jwksUrl, jwt.header.kid)
-  return verify(token, key.publicKey, { algorithms: ['RS256'] }) as JwtPayload
+  return verify(token, key.x5c, { algorithms: ['RS256'] }) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
