@@ -5,7 +5,7 @@ import { cors } from 'middy/middlewares'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 import { update } from '../../businessLogic/todos-controller'
 import { createLogger } from '../../utils/logger'
-import { getTokenFromEvent } from '../utils'
+import { getTokenFromEvent } from '../../auth/utils'
 
 const logger = createLogger('updateTodoHandler');
 

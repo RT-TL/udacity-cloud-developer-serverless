@@ -20,8 +20,6 @@ provider:
       TODOS_TABLE: Todos-{self:provider.stage}
       USERID_INDEX: UserIdIndex
       ATTACHMENTS_BUCKET: rttl-serverless-todos-attachment-${self:provider.stage}
-      AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
-      AUTH_0_SECRET_FIELD: auth0Secret
       SIGNED_URL_EXPIRATION: 300
 
   iamRoleStatements:
@@ -35,6 +33,7 @@ custom:
   serverless-offline:
     host: 0.0.0.0
     port: 4000
+    httpPort: 3333
   
   dynamodb:
     stages:
@@ -63,24 +62,14 @@ custom:
     models:
       - name: CreateTodo
         contentType: application/json
-        schema: ${file(models/create-todo-model.json)}
+        schema: ${file(./models/create-todo-model.json)}
       - name: UpdateTodo
         contentType: application/json
-        schema: ${file(models/update-todo-model.json)}
+        schema: ${file(./models/update-todo-model.json)}
 
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
-    iamRoleStatements: 
-      - Effect: Allow
-        Action:
-          - secretsmanager:GetSecretValue
-        Resource: !Ref Auth0Secret
-      - Effect: Allow
-        Action:
-          - kms:Decrypt
-        Resource: !GetAtt KMSKey.Arn
-
 
   # TODO: Configure this function
   GetTodos:
@@ -177,7 +166,7 @@ functions:
       - Effect: Allow
         Action:
           - s3:PutObject
-        Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*  
+        Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*  
   
 resources:
   Resources:
@@ -255,40 +244,6 @@ resources:
               Effect: Allow
               Principal: '*'
               Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*'
+              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*'
         Bucket: !Ref AttachmentBucket
-          
-    KMSKey:
-      Type: AWS::KMS::Key
-      Properties:
-        Description: KMS key to encrypt Auth0 secret
-        KeyPolicy:
-          Version: '2012-10-17'
-          Id: key-default-1
-          Statement:
-            - Sid: Allow administration of the key
-              Effect: Allow
-              Principal:
-                AWS:
-                  Fn::Join:
-                  - ':'
-                  - - 'arn:aws:iam:'
-                    - Ref: AWS::AccountId
-                    - 'root'
-              Action:
-                - 'kms:*'
-              Resource: '*'
-
-    KMSKeyAlias:
-      Type: AWS::KMS::Alias
-      Properties:
-        AliasName: alias/auth0Key-${self:provider.stage}
-        TargetKeyId: !Ref KMSKey
-
-    Auth0Secret:
-      Type: AWS::SecretsManager::Secret
-      Properties:
-        Name: ${self:provider.environment.AUTH_0_SECRET_ID}
-        Description: Auth0 secret
-        KmsKeyId: !Ref KMSKey
 

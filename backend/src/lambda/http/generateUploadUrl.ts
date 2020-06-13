@@ -26,8 +26,6 @@ if (process.env.IS_OFFLINE) {
   };
 }
 
-
-
 export const generateUploadUrlHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   logger.info('Generate upload url', event)
   const todoId = event.pathParameters.todoId

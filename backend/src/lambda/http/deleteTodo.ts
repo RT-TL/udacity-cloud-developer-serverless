@@ -4,7 +4,6 @@ import { cors } from 'middy/middlewares'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { deleteTodo } from '../../businessLogic/todos-controller';
 import { createLogger } from '../../utils/logger';
-import { createHandler } from './createTodo';
 import { getTokenFromEvent } from '../../auth/utils'
 
 const logger = createLogger('deleteTodoHandler');
