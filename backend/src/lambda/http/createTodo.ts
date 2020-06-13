@@ -19,7 +19,7 @@ export const createHandler: APIGatewayProxyHandler = async (event: APIGatewayPro
   return {
       statusCode: 201,
       body: JSON.stringify({
-          newItem,
+          item: newItem,
       }),
   };
 
