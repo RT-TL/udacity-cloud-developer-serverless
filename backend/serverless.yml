@@ -17,7 +17,7 @@ provider:
   region: ${opt:region, 'us-east-2'}
 
   environment:
-      TODOS_TABLE: Todos-{self:provider.stage}
+      TODOS_TABLE: Todos-${self:provider.stage}
       USERID_INDEX: UserIdIndex
       ATTACHMENTS_BUCKET: rttl-serverless-todos-attachment-${self:provider.stage}
       SIGNED_URL_EXPIRATION: 300
@@ -143,6 +143,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:DeleteItem
+          - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     
   # TODO: Configure this function
@@ -170,6 +171,7 @@ functions:
   
 resources:
   Resources:
+    
     Gateway:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
@@ -191,28 +193,30 @@ resources:
         ValidateRequestBody: true
         ValidateRequestParameters: false
 
-  TodosDynamoDBTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: todoId
-          AttributeType: S
-        - AttributeName: userId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: todoId
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: ${self:provider.environment.USERID_INDEX}
-          KeySchema:
+    TodosDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: todoId
+            AttributeType: S
           - AttributeName: userId
-            KeyType: HASH
+            AttributeType: S
+        KeySchema:
           - AttributeName: todoId
             KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-      BillingMode: PAY_PER_REQUEST
-      TableName: ${self:provider.environment.TODOS_TABLE}
+          - AttributeName: userId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.USERID_INDEX}
+            KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: todoId
+              KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.TODOS_TABLE}
 
     AttachmentsBucket:
       Type: AWS::S3::Bucket
@@ -245,5 +249,5 @@ resources:
               Principal: '*'
               Action: 's3:GetObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*'
-        Bucket: !Ref AttachmentBucket
+        Bucket: !Ref AttachmentsBucket
 

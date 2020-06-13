@@ -41,7 +41,7 @@ export const generateUploadUrlHandler: APIGatewayProxyHandler = async (event: AP
   const uploadUrl = s3bucket.getSignedUrl('putObject', {
     Bucket: bucketName,
     Key: todoId,
-    Expires: urlExpiration
+    Expires: parseInt(urlExpiration)
   })
 
   return {

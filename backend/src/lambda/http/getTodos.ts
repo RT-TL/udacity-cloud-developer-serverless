@@ -17,7 +17,7 @@ export const getTodosHandler: APIGatewayProxyHandler = async (event: APIGatewayP
   const todos = await getAllTodos(jwtToken)
 
   return {
-    statusCode: 201,
+    statusCode: 200,
     body: JSON.stringify({
       items: todos
     })

@@ -10,7 +10,6 @@ const todoAccessModel = new TodoAccessModel();
 
 export async function getAllTodos(jwtToken: string): Promise<TodoItem[]> {
     const userId = parseUserId(jwtToken);
-
     return todoAccessModel.all(userId);
 }
 
