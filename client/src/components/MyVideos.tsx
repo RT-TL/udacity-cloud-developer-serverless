@@ -22,19 +22,13 @@ interface VideosProps {
 
 interface VideosState {
   videos: Video[]
-  newTodoName: string
-  loadingTodos: boolean
+  loadingVideos: boolean
 }
 
 export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
   state: VideosState = {
     videos: [],
-    newTodoName: '',
-    loadingTodos: true
-  }
-
-  handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ newTodoName: event.target.value })
+    loadingVideos: true
   }
 
   onEditButtonClick = (videoId: string) => {
@@ -46,6 +40,10 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
       this.state.videos[pos].public 
         ? await unpublishVideo(this.props.auth.getIdToken(), this.state.videos[pos].videoId)
         : await publishVideo(this.props.auth.getIdToken(), this.state.videos[pos].videoId)
+
+      const videos = this.state.videos
+      videos[pos].public = videos[pos].public ? 0 : 1
+      this.setState({...this.state, videos: videos});
     } catch {
       alert(`Video ${this.state.videos[pos].public ? 'unpublish' : 'publish'} failed`)
     }
@@ -68,7 +66,7 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
       const videos = await getMyVideos(this.props.auth.getIdToken())
       this.setState({
         videos,
-        loadingTodos: false
+        loadingVideos: false
       })
     } catch (e) {
       alert(`Failed to fetch todos: ${e.message}`)
@@ -87,7 +85,7 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
   }
 
   renderVideos() {
-    if (this.state.loadingTodos) {
+    if (this.state.loadingVideos) {
       return this.renderLoading()
     }
 
@@ -119,7 +117,7 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
                   </Link> 
 
                   <Button basic color='green' onClick={() => this.onVideoPublish(pos)}>
-                    {video.public ? 'Unpublish' : 'Publish'} {video.public}
+                    {video.public ? 'Unpublish' : 'Publish'}
                   </Button>
 
                   <Button basic color='red' onClick={() => this.onVideoDelete(pos)}>

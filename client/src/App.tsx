@@ -108,7 +108,7 @@ export default class App extends Component<AppProps, AppState> {
         </React.Fragment>
         )
     }
-
+console.log(this.props);
     return (
       <Switch>
         <Route

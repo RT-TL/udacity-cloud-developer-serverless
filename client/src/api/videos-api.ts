@@ -5,7 +5,7 @@ import Axios from 'axios'
 import { UpdateVideoRequest } from '../types/UpdateVideoRequest';
 
 export async function getVideos(): Promise<Video[]> {
-  console.log('Fetching videos')
+  console.log('Fetching all public videos')
 
   const response = await Axios.get(`${apiEndpoint}/publicVideos`, {
     headers: {
@@ -13,6 +13,19 @@ export async function getVideos(): Promise<Video[]> {
     },
   })
   console.log('Videos:', response.data)
+  return response.data.items
+}
+
+export async function getVideo(idToken: string, videoId: string): Promise<Video[]> {
+  console.log('Fetching single video by Id')
+
+  const response = await Axios.get(`${apiEndpoint}/videos/${videoId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    },
+  })
+  console.log('Video:', response.data)
   return response.data.items
 }
 

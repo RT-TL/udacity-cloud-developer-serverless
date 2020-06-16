@@ -14,7 +14,8 @@ export const getPrivateVideosHandler: APIGatewayProxyHandler = async (event: API
 
   // Get current user
   const jwtToken = getTokenFromEvent(event);
-  const videos = await getPrivateVideos(jwtToken)
+  const videoId = (event.pathParameters && event.pathParameters.videoId) ? event.pathParameters.videoId : null;
+  const videos = await getPrivateVideos(jwtToken, videoId)
 
   return {
     statusCode: 200,

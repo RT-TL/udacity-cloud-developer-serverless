@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Form, Button } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
+import { getVideo, patchVideo } from '../api/videos-api'
 
 interface EditVideoProps {
   match: {
@@ -23,6 +24,15 @@ export class EditVideo extends React.PureComponent<
   state: EditVideoState = {
     name: '',
     description: ''
+  }
+
+  async componentDidMount() {
+    const videos = await getVideo(this.props.auth.getIdToken(), this.props.match.params.videoId)
+    if(videos) {
+      this.setState({...videos[0]});
+    } else {
+      alert('Could not load video.')
+    }
   }
 
 
@@ -51,6 +61,12 @@ export class EditVideo extends React.PureComponent<
         return
       }
 
+      const update = {
+        name: this.state.name,
+        description: this.state.description
+      }
+      
+      await patchVideo(this.props.auth.getIdToken(), this.props.match.params.videoId, update);
       alert('Video edit successful.')
     } catch (e) {
       alert('Could not edit the video' + e.message)

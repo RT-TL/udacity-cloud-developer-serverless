@@ -9,8 +9,10 @@ import { getImageBucketUrl } from '../lambda/utils';
 
 const videoAccessModel = new VideoAccessModel();
 
-export async function getPrivateVideos(jwtToken: string): Promise<VideoItem[]> {
+export async function getPrivateVideos(jwtToken: string, videoId?: string): Promise<VideoItem[]> {
     const userId = parseUserId(jwtToken);
+
+    if(videoId) return videoAccessModel.byId(videoId)
     return videoAccessModel.allForUser(userId);
 }
 

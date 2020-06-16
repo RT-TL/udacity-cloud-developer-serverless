@@ -22,6 +22,7 @@ provider:
       VIDEOS_BUCKET: rttl-serverless-videos-${self:provider.stage}
       SIGNED_URL_EXPIRATION: 500
       PUBLIC_INDEX: publicIndex
+      VIDEO_INDEX: videoIndex
 
   iamRoleStatements:
     - Effect: Allow
@@ -77,6 +78,20 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
+  GetVideo:
+    handler: src/lambda/http/getPrivateVideos.handler
+    events:
+      - http:
+          method: get
+          path: videos/{videoId}
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}/index/${self:provider.environment.VIDEO_INDEX}
+  
   GetVideos:
     handler: src/lambda/http/getPrivateVideos.handler
     events:
@@ -249,6 +264,12 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
+          - IndexName: ${self:provider.environment.VIDEO_INDEX}
+            KeySchema:
+              - AttributeName: videoId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL    
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.VIDEOS_TABLE}
 

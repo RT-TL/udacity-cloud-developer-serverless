@@ -4,6 +4,7 @@ import { VideoItem } from '../models/VideoItem';
 import { VideoUpdate } from '../models/VideoUpdate';
 
 const PUBLIC_INDEX = process.env.PUBLIC_INDEX
+const VIDEO_INDEX = process.env.VIDEO_INDEX
 
 function createDynamoDBClient(): DocumentClient {
   if (process.env.IS_OFFLINE) {
@@ -36,6 +37,22 @@ export class VideoAccessModel {
       .promise();
 
     console.log('Public search response is ', result)
+    const items = result.Items;
+    return items as VideoItem[];
+  }
+
+  public async byId(videoId: string): Promise<VideoItem[]> {
+    const result = await this.documentClient
+    .query({
+      TableName: this.videosTable,
+      IndexName: VIDEO_INDEX,
+      KeyConditionExpression: 'videoId = :videoId',
+      ExpressionAttributeValues: {
+        ':videoId': videoId
+      },
+    })
+    .promise();
+
     const items = result.Items;
     return items as VideoItem[];
   }

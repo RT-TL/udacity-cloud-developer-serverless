@@ -135,7 +135,7 @@ export class CreateVideo extends React.PureComponent<
   renderButton() {
     return (
       <div>
-        {this.state.uploadState === UploadState.FetchingPresignedUrl && <p>Uploading image metadata</p>}
+        {this.state.uploadState === UploadState.FetchingPresignedUrl && <p>Uploading video metadata</p>}
         {this.state.uploadState === UploadState.UploadingFile && <p>Uploading file</p>}
         <Button
           loading={this.state.uploadState !== UploadState.NoUpload}

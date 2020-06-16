@@ -3,7 +3,7 @@ export interface Video {
   createdAt: string
   name: string
   description: string
-  public: boolean
-  uploadUrl?: string,
+  public: number
+  uploadUrl?: string
   url: string
 }

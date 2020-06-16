@@ -31,6 +31,7 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
   async componentDidMount() {
     try {
       const videos = await getVideos()
+      console.log('Received videos:',videos)
       this.setState({
         videos,
         loadingVideos: false
@@ -54,7 +55,7 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
     if (this.state.loadingVideos) {
       return this.renderLoading()
     }
-
+  
     return this.renderVideoList()
   }
 
@@ -69,10 +70,12 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
   }
 
   renderVideoList() {
-    return (
+    return(
       <Container>
         {this.state.videos.map((video) => {
-          <VideoCard video={video} />
+          return ( 
+            <VideoCard video={video} />
+          )
         })}
       </Container>
     )
