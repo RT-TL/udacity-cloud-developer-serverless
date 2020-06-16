@@ -15,7 +15,7 @@ import {
   Loader
 } from 'semantic-ui-react'
 
-import { createVideo, deleteVideo, getMyVideos, patchVideo } from '../api/todos-api'
+import { deleteVideo, getMyVideos } from '../api/videos-api'
 import Auth from '../auth/Auth'
 import { Video } from '../types/Video'
 

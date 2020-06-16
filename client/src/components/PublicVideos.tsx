@@ -4,91 +4,40 @@ import { History } from 'history'
 import * as React from 'react'
 import ReactPlayer from 'react-player'
 import {
-  Button,
-  Checkbox,
-  Divider,
   Grid,
   Header,
-  Icon,
-  //Input,
-  //Image,
-  Loader
+  Loader,
+  Card,
+  Container
 } from 'semantic-ui-react'
 
-import { getMyVideos } from '../api/todos-api'
-import Auth from '../auth/Auth'
+import { getVideos } from '../api/videos-api'
 import { Video } from '../types/Video'
 
 interface VideosProps {
-  auth: Auth
   history: History
 }
 
 interface VideosState {
   videos: Video[]
-  newTodoName: string
-  loadingTodos: boolean
+  loadingVideos: boolean
 }
 
 export class PublicVideos extends React.PureComponent<VideosProps, VideosState> {
   state: VideosState = {
     videos: [],
-    newTodoName: '',
-    loadingTodos: true
+    loadingVideos: true
   }
 
-  handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ newTodoName: event.target.value })
-  }
-
-  onEditButtonClick = (videoId: string) => {
-    this.props.history.push(`/videos/${videoId}/edit`)
-  }
-/*
-  onVideoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
-    try {
-      const dueDate = this.calculateDueDate()
-      const newTodo = await createVideo(this.props.auth.getIdToken(), {
-        name: this.state.newTodoName,
-        dueDate
-      })
-      this.setState({
-        todos: [...this.state.todos, newTodo],
-        newTodoName: ''
-      })
-    } catch {
-      alert('Todo creation failed')
-    }
-  }
-*/
-/*
-  onTodoCheck = async (pos: number) => {
-    try {
-      const video = this.state.videos[pos]
-      await patchTodo(this.props.auth.getIdToken(), todo.todoId, {
-        name: todo.name,
-        dueDate: todo.dueDate,
-        done: !todo.done
-      })
-      this.setState({
-        todos: update(this.state.todos, {
-          [pos]: { done: { $set: !todo.done } }
-        })
-      })
-    } catch {
-      alert('Todo deletion failed')
-    }
-  }
-*/
   async componentDidMount() {
     try {
-      const videos = await getMyVideos(this.props.auth.getIdToken())
+      const videos = await getVideos()
       this.setState({
         videos,
-        loadingTodos: false
+        loadingVideos: false
       })
     } catch (e) {
-      alert(`Failed to fetch todos: ${e.message}`)
+      alert(`Failed to fetch videos: ${e.message}`)
     }
   }
 
@@ -103,7 +52,7 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
   }
 
   renderVideos() {
-    if (this.state.loadingTodos) {
+    if (this.state.loadingVideos) {
       return this.renderLoading()
     }
 
@@ -114,7 +63,7 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
     return (
       <Grid.Row>
         <Loader indeterminate active inline="centered">
-          Loading VIDEOs
+          Loading Videos
         </Loader>
       </Grid.Row>
     )
@@ -122,34 +71,22 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
 
   renderVideoList() {
     return (
-      <Grid padded>
+      <Container>
         {this.state.videos.map((video, pos) => {
-          return (
-            <Grid.Row key={video.videoId}>
-              <Grid.Column width={1} verticalAlign="middle">
-                <Checkbox
-                  //onChange={() => this.onTodoCheck(pos)}
-                  checked={video.public}
-                />
-              </Grid.Column>
-              <Grid.Column width={10} verticalAlign="middle">
-                {video.name}
-              </Grid.Column>
-              <Grid.Column width={16} floated="right">
+          <Card>
+            <ReactPlayer url={video.url} size="small" wrapped />
+            <Card.Content>
+              <Card.Header>{video.name}</Card.Header>
+              <Card.Meta>
+                <span className='date'>Uploaded on {video.createdAt}</span>
+              </Card.Meta>
+              <Card.Description>
                 {video.description}
-              </Grid.Column>
-              <Grid.Column width={16}>
-              {video.url && (
-                <ReactPlayer url={video.url} size="small" wrapped />
-              )}
-              </Grid.Column>
-              <Grid.Column width={16}>
-                <Divider />
-              </Grid.Column>
-            </Grid.Row>
-          )
+              </Card.Description>
+            </Card.Content>
+          </Card>
         })}
-      </Grid>
+      </Container>
     )
   }
 

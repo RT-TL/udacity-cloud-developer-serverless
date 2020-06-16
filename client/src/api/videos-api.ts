@@ -1,26 +1,23 @@
 import { apiEndpoint } from '../config'
-import { Todo } from '../types/Todo';
 import { Video } from '../types/Video';
-import { CreateTodoRequest } from '../types/CreateTodoRequest';
 import { CreateVideoRequest } from '../types/CreateVideoRequest';
 import Axios from 'axios'
 import { UpdateVideoRequest } from '../types/UpdateVideoRequest';
 
-export async function getTodos(idToken: string): Promise<Todo[]> {
-  console.log('Fetching todos')
+export async function getVideos(): Promise<Video[]> {
+  console.log('Fetching videos')
 
-  const response = await Axios.get(`${apiEndpoint}/todos`, {
+  const response = await Axios.get(`${apiEndpoint}/publicVideos`, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${idToken}`
     },
   })
-  console.log('Todos:', response.data)
+  console.log('Videos:', response.data)
   return response.data.items
 }
 
 export async function getMyVideos(idToken: string): Promise<Video[]> {
-  console.log('Fetching videos')
+  console.log('Fetching private videos')
 
   const response = await Axios.get(`${apiEndpoint}/videos`, {
     headers: {

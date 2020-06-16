@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Form, Button } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
-import { createVideo } from '../api/todos-api'
+import { createVideo } from '../api/videos-api'
 
 enum UploadState {
   NoUpload,

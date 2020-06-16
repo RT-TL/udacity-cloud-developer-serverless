@@ -4,7 +4,6 @@ import * as middy from 'middy';
 import { cors } from 'middy/middlewares';
 import { getPublicVideos } from '../../businesslogic/videos-controller';
 import { createLogger } from '../../utils/logger';
-import { getTokenFromEvent } from '../../auth/utils';
 
 const logger = createLogger('getVideosHandler');
 
@@ -13,8 +12,7 @@ export const getPublicVideosHandler: APIGatewayProxyHandler = async (event: APIG
   logger.info('Get public videos', event);
 
   // Get current user
-  const jwtToken = getTokenFromEvent(event);
-  const videos = await getPublicVideos(jwtToken)
+  const videos = await getPublicVideos()
 
   return {
     statusCode: 200,

@@ -4,6 +4,6 @@ export interface VideoItem {
   createdAt: string
   name: string
   description: string
-  public: boolean
+  public: number
   url: string
 }

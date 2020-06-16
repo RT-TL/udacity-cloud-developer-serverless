@@ -10,12 +10,12 @@ import { getImageBucketUrl } from '../lambda/utils';
 const videoAccessModel = new VideoAccessModel();
 
 export async function getPrivateVideos(jwtToken: string): Promise<VideoItem[]> {
-    return videoAccessModel.all();
+    const userId = parseUserId(jwtToken);
+    return videoAccessModel.allForUser(userId);
 }
 
-export async function getPublicVideos(jwtToken: string): Promise<VideoItem[]> {
-    const userId = parseUserId(jwtToken);
-    return videoAccessModel.all(userId);
+export async function getPublicVideos(): Promise<VideoItem[]> {
+    return videoAccessModel.all();
 }
 
 export async function createVideo(
@@ -31,7 +31,7 @@ export async function createVideo(
         name: createTodoRequest.name,
         description: createTodoRequest.description,
         createdAt: new Date().toISOString(),
-        public: false,
+        public: 0,
         url: getImageBucketUrl(itemId)
     });
 }

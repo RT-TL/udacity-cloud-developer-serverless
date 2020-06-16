@@ -18,9 +18,10 @@ provider:
   region: ${opt:region, 'us-east-2'}
 
   environment:
-      VIDEOS_TABLE: Videos-${self:provider.stage}
+      VIDEOS_TABLE: rttl-Videos-${self:provider.stage}
       VIDEOS_BUCKET: rttl-serverless-videos-${self:provider.stage}
       SIGNED_URL_EXPIRATION: 500
+      PUBLIC_INDEX: publicIndex
 
   iamRoleStatements:
     - Effect: Allow
@@ -97,12 +98,11 @@ functions:
           method: get
           path: publicVideos
           cors: true
-          authorizer: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}/index/${self:provider.environment.PUBLIC_INDEX}
 
   CreateVideo:
     handler: src/lambda/http/createVideo.handler
@@ -219,11 +219,20 @@ resources:
             AttributeType: S
           - AttributeName: videoId
             AttributeType: S
+          - AttributeName: public
+            AttributeType: N
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
           - AttributeName: videoId
             KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.PUBLIC_INDEX}
+            KeySchema:
+              - AttributeName: public
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.VIDEOS_TABLE}
 

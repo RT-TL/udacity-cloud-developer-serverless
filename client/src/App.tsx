@@ -3,8 +3,8 @@ import { Link, Route, Router, Switch } from 'react-router-dom'
 import { Grid, Menu, Segment } from 'semantic-ui-react'
 
 import Auth from './auth/Auth'
-import { EditTodo } from './components/EditTodo'
 import { CreateVideo } from './components/CreateVideo'
+import { EditVideo } from './components/EditVideo'
 import { LogIn } from './components/LogIn'
 import { NotFound } from './components/NotFound'
 import { MyVideos } from './components/MyVideos'
@@ -91,7 +91,22 @@ export default class App extends Component<AppProps, AppState> {
 
   generateCurrentPage() {
     if (!this.props.auth.isAuthenticated()) {
-      return <LogIn auth={this.props.auth} />
+      return (
+        <React.Fragment>
+          <Switch>
+            <Route
+            path="/"
+            exact
+            render={props => {
+              return <PublicVideos {...props} />
+            }}
+            />
+            <Route path="/" render={props => {
+            return <LogIn auth={this.props.auth} />
+          }}/>
+          </Switch>
+        </React.Fragment>
+        )
     }
 
     return (
@@ -100,7 +115,7 @@ export default class App extends Component<AppProps, AppState> {
           path="/"
           exact
           render={props => {
-            return <PublicVideos {...props} auth={this.props.auth} />
+            return <PublicVideos {...props} />
           }}
         />
 
@@ -124,7 +139,7 @@ export default class App extends Component<AppProps, AppState> {
           path="/todos/:todoId/edit"
           exact
           render={props => {
-            return <EditTodo {...props} auth={this.props.auth} />
+            return <EditVideo {...props} auth={this.props.auth} />
           }}
         />
 

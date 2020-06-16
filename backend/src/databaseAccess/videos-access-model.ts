@@ -3,6 +3,8 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { VideoItem } from '../models/VideoItem';
 import { VideoUpdate } from '../models/VideoUpdate';
 
+const PUBLIC_INDEX = process.env.PUBLIC_INDEX
+
 function createDynamoDBClient(): DocumentClient {
   if (process.env.IS_OFFLINE) {
       return new AWS.DynamoDB.DocumentClient({
@@ -20,13 +22,15 @@ export class VideoAccessModel {
     private readonly videosTable = process.env.VIDEOS_TABLE,
   ) { }
 
-  public async all(userId?: string): Promise<VideoItem[]> {
+  public async all(): Promise<VideoItem[]> {
     const result = await this.documentClient
       .query({
         TableName: this.videosTable,
-        KeyConditionExpression: 'userId = :userId',
+        IndexName: PUBLIC_INDEX,
+        KeyConditionExpression: "#p = :public",
+        ExpressionAttributeNames: { "#p": "public" },
         ExpressionAttributeValues: {
-          ':userId': userId,
+          ':public': 1,
         },
       })
       .promise();
@@ -35,6 +39,20 @@ export class VideoAccessModel {
     return items as VideoItem[];
   }
 
+  public async allForUser(userId: string): Promise<VideoItem[]> {
+    const result = await this.documentClient
+    .query({
+      TableName: this.videosTable,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+      },
+    })
+    .promise();
+
+    const items = result.Items;
+    return items as VideoItem[];
+  }
 
   public async get(videoId: string, userId: string): Promise<VideoItem> {
     const result = await this.documentClient
@@ -76,7 +94,7 @@ export class VideoAccessModel {
           createdAt,
         },
         UpdateExpression:
-          'set #n = :name, public = :public, description = :description',
+          'set #n = :name, #p = :public, description = :description',
         ExpressionAttributeValues: {
           ':name': videoUpdate.name,
           ':description': videoUpdate.description,
@@ -84,6 +102,7 @@ export class VideoAccessModel {
         },
         ExpressionAttributeNames: {
           '#n': 'name', 
+          '#p': 'public'
         },
         ReturnValues: 'UPDATED_NEW',
       })
