@@ -121,7 +121,7 @@ export class CreateVideo extends React.PureComponent<
             <input
               type="file"
               accept="video/*"
-              placeholder="Image to upload"
+              placeholder="Video to upload"
               onChange={this.handleFileChange}
             />
           </Form.Field>

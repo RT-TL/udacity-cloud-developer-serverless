@@ -18,13 +18,22 @@ export async function getPublicVideos(): Promise<VideoItem[]> {
     return videoAccessModel.all();
 }
 
+export async function publishVideo(videoId: string, jwtToken: string, publish: boolean): Promise<void> {
+    const userId = parseUserId(jwtToken);
+    const video = await videoAccessModel.get(videoId, userId);
+    if(!video) {
+        throw new Error(`Video ${videoId} not found for user ${userId}`)
+    }
+    return videoAccessModel.publish(videoId, userId, publish);
+}
+
 export async function createVideo(
     createTodoRequest: CreateVideoRequest,
     jwtToken: string,
 ): Promise<VideoItem> {
     const itemId = uuid.v4();
     const userId = parseUserId(jwtToken);
-// To do: add file
+
     return videoAccessModel.create({
         videoId: itemId,
         userId: userId,
@@ -43,8 +52,7 @@ export async function update(
 ): Promise<void> {
     const userId = parseUserId(jwtToken);
     const video = await videoAccessModel.get(videoId, userId);
-
-    videoAccessModel.update(video.videoId, video.createdAt, updateVideoRequest);
+    videoAccessModel.update(video.videoId, userId, updateVideoRequest);
 }
 
 export async function deleteVideo(

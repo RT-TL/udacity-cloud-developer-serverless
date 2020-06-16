@@ -150,20 +150,36 @@ functions:
           - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
      
+  UnpublishVideo:
+    handler: src/lambda/http/unpublishVideo.handler
+    events:
+      - http:
+          method: patch
+          path: videos/{videoId}/unpublish
+          cors: true
+          authorizer: Auth
+          documentation:
+            summary: Unpublish video
+            description: makes a video resource unavailable for other users
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
+    
+
   PublishVideo:
-    handler: src/lambda/http/updateVideo.handler
+    handler: src/lambda/http/publishVideo.handler
     events:
       - http:
           method: patch
           path: videos/{videoId}/publish
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestValidator
           documentation:
             summary: Publish video
-            description: makes a video resource poublicly available
-            requestModels:
-              'application/json': PublishVideo
+            description: makes a video resource publicly available
     iamRoleStatements:
       - Effect: Allow
         Action:

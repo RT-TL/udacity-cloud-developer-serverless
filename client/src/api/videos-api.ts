@@ -58,6 +58,30 @@ export async function patchVideo(
   })
 }
 
+export async function publishVideo(
+  idToken: string,
+  videoId: string
+): Promise<void> {
+  await Axios.patch(`${apiEndpoint}/videos/${videoId}/publish`, '', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    }
+  })
+}
+
+export async function unpublishVideo(
+  idToken: string,
+  videoId: string
+): Promise<void> {
+  await Axios.patch(`${apiEndpoint}/videos/${videoId}/unpublish`, '', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    }
+  })
+}
+
 export async function deleteVideo(
   idToken: string,
   videoId: string

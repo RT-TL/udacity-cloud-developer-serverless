@@ -1,23 +1,19 @@
 import dateFormat from 'dateformat'
 import { History } from 'history'
-//import update from 'immutability-helper'
 import * as React from 'react'
-import ReactPlayer from 'react-player'
+import { Link } from 'react-router-dom'
 import {
   Button,
-  Checkbox,
-  Divider,
   Grid,
   Header,
-  Icon,
-  //Input,
-  //Image,
+  Card,
   Loader
 } from 'semantic-ui-react'
 
-import { deleteVideo, getMyVideos } from '../api/videos-api' //patchTodo
+import { deleteVideo, getMyVideos, publishVideo, unpublishVideo } from '../api/videos-api'
 import Auth from '../auth/Auth'
 import { Video } from '../types/Video'
+import VideoCard from './VideoCard'
 
 interface VideosProps {
   auth: Auth
@@ -44,52 +40,29 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
   onEditButtonClick = (videoId: string) => {
     this.props.history.push(`/videos/${videoId}/edit`)
   }
-/*
-  onVideoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
+  
+  onVideoPublish = async (pos: number) => {
     try {
-      const dueDate = this.calculateDueDate()
-      const newTodo = await createVideo(this.props.auth.getIdToken(), {
-        name: this.state.newTodoName,
-        dueDate
-      })
-      this.setState({
-        todos: [...this.state.todos, newTodo],
-        newTodoName: ''
-      })
+      this.state.videos[pos].public 
+        ? await unpublishVideo(this.props.auth.getIdToken(), this.state.videos[pos].videoId)
+        : await publishVideo(this.props.auth.getIdToken(), this.state.videos[pos].videoId)
     } catch {
-      alert('Todo creation failed')
+      alert(`Video ${this.state.videos[pos].public ? 'unpublish' : 'publish'} failed`)
     }
   }
-*/
-  onVideoDelete = async (videoId: string) => {
+    
+
+  onVideoDelete = async (pos: number) => {
     try {
-      await deleteVideo(this.props.auth.getIdToken(), videoId)
+      await deleteVideo(this.props.auth.getIdToken(), this.state.videos[pos].videoId)
       this.setState({
-        videos: this.state.videos.filter(video => video.videoId != videoId)
+        videos: this.state.videos.filter(video => video.videoId != this.state.videos[pos].videoId)
       })
     } catch {
       alert('Video deletion failed')
     }
   }
-/*
-  onTodoCheck = async (pos: number) => {
-    try {
-      const video = this.state.videos[pos]
-      await patchTodo(this.props.auth.getIdToken(), todo.todoId, {
-        name: todo.name,
-        dueDate: todo.dueDate,
-        done: !todo.done
-      })
-      this.setState({
-        todos: update(this.state.todos, {
-          [pos]: { done: { $set: !todo.done } }
-        })
-      })
-    } catch {
-      alert('Todo deletion failed')
-    }
-  }
-*/
+  
   async componentDidMount() {
     try {
       const videos = await getMyVideos(this.props.auth.getIdToken())
@@ -102,10 +75,11 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
     }
   }
 
+
   render() {
     return (
       <div>
-        <Header as="h1">VIDEOs</Header>
+        <Header as="h1">My Videos</Header>
 
         {this.renderVideos()}
       </div>
@@ -124,7 +98,7 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
     return (
       <Grid.Row>
         <Loader indeterminate active inline="centered">
-          Loading TODOs
+          Loading Videos
         </Loader>
       </Grid.Row>
     )
@@ -135,46 +109,25 @@ export class MyVideos extends React.PureComponent<VideosProps, VideosState> {
       <Grid padded>
         {this.state.videos.map((video, pos) => {
           return (
-            <Grid.Row key={video.videoId}>
-              <Grid.Column width={1} verticalAlign="middle">
-                <Checkbox
-                  //onChange={() => this.onTodoCheck(pos)}
-                  checked={video.public}
-                />
-              </Grid.Column>
-              <Grid.Column width={10} verticalAlign="middle">
-                {video.name}
-              </Grid.Column>
-              <Grid.Column width={16} floated="right">
-                {video.description}
-              </Grid.Column>
-              <Grid.Column width={1} floated="right">
-                <Button
-                  icon
-                  color="blue"
-                  onClick={() => this.onEditButtonClick(video.videoId)}
-                >
-                  <Icon name="pencil" />
-                </Button>
-              </Grid.Column>
-              <Grid.Column width={1} floated="right">
-                <Button
-                  icon
-                  color="red"
-                  onClick={() => this.onVideoDelete(video.videoId)}
-                >
-                  <Icon name="delete" />
-                </Button>
-              </Grid.Column>
-              <Grid.Column>
-              {video.url && (
-                <ReactPlayer url={video.url} size="small" wrapped />
-              )}
-              </Grid.Column>
-              <Grid.Column width={16}>
-                <Divider />
-              </Grid.Column>
-            </Grid.Row>
+            <VideoCard video={video} key={video.videoId}>
+              <Card.Content extra>
+                <div className='ui three buttons'>
+                  <Link to={`/videos/${video.videoId}/edit`}>
+                    <Button basic color='blue'>
+                      Edit
+                    </Button>
+                  </Link> 
+
+                  <Button basic color='green' onClick={() => this.onVideoPublish(pos)}>
+                    {video.public ? 'Unpublish' : 'Publish'} {video.public}
+                  </Button>
+
+                  <Button basic color='red' onClick={() => this.onVideoDelete(pos)}>
+                    Delete
+                  </Button>
+                </div>
+              </Card.Content>
+            </VideoCard>
           )
         })}
       </Grid>

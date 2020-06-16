@@ -35,6 +35,7 @@ export class VideoAccessModel {
       })
       .promise();
 
+    console.log('Public search response is ', result)
     const items = result.Items;
     return items as VideoItem[];
   }
@@ -81,28 +82,46 @@ export class VideoAccessModel {
     return videoItem;
   }
 
+  public async publish(videoId, userId, publish: boolean): Promise<void> {
+    const status = publish ? 1 : 0
+    this.documentClient.update({
+      TableName: this.videosTable,
+      Key: {
+        userId,
+        videoId
+      },
+      UpdateExpression: 'set #p = :public',
+      ExpressionAttributeValues: {
+        ':public': status
+      },
+      ExpressionAttributeNames: {
+        '#p': 'public'
+      },
+      ReturnValues: 'UPDATED_NEW'  
+    })
+    .promise();
+  }
+
   public async update(
     videoId: string,
-    createdAt: string,
+    userId: string,
     videoUpdate: VideoUpdate,
   ): Promise<void> {
     this.documentClient
       .update({
         TableName: this.videosTable,
         Key: {
-          videoId,
-          createdAt,
+          userId,
+          videoId
         },
         UpdateExpression:
-          'set #n = :name, #p = :public, description = :description',
+          'set #n = :name, description = :description',
         ExpressionAttributeValues: {
           ':name': videoUpdate.name,
-          ':description': videoUpdate.description,
-          ':public': videoUpdate.public,
+          ':description': videoUpdate.description
         },
         ExpressionAttributeNames: {
-          '#n': 'name', 
-          '#p': 'public'
+          '#n': 'name'
         },
         ReturnValues: 'UPDATED_NEW',
       })

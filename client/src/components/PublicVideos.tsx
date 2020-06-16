@@ -1,18 +1,17 @@
 import dateFormat from 'dateformat'
 import { History } from 'history'
-//import update from 'immutability-helper'
 import * as React from 'react'
-import ReactPlayer from 'react-player'
 import {
-  Grid,
   Header,
   Loader,
   Card,
+  Grid,
   Container
 } from 'semantic-ui-react'
 
 import { getVideos } from '../api/videos-api'
 import { Video } from '../types/Video'
+import VideoCard from './VideoCard';
 
 interface VideosProps {
   history: History
@@ -44,7 +43,7 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
   render() {
     return (
       <div>
-        <Header as="h1">VIDEOs</Header>
+        <Header as="h1">Public Videos</Header>
 
         {this.renderVideos()}
       </div>
@@ -72,19 +71,8 @@ export class PublicVideos extends React.PureComponent<VideosProps, VideosState> 
   renderVideoList() {
     return (
       <Container>
-        {this.state.videos.map((video, pos) => {
-          <Card>
-            <ReactPlayer url={video.url} size="small" wrapped />
-            <Card.Content>
-              <Card.Header>{video.name}</Card.Header>
-              <Card.Meta>
-                <span className='date'>Uploaded on {video.createdAt}</span>
-              </Card.Meta>
-              <Card.Description>
-                {video.description}
-              </Card.Description>
-            </Card.Content>
-          </Card>
+        {this.state.videos.map((video) => {
+          <VideoCard video={video} />
         })}
       </Container>
     )

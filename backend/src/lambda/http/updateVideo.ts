@@ -11,7 +11,7 @@ const logger = createLogger('updateVideoHandler');
 
 export const updateVideosHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   logger.info('Update a video', event);
-  const videoId = event.pathParameters.todoId
+  const videoId = event.pathParameters.videoId
   const updatedVideo: UpdateVideoRequest = JSON.parse(event.body)
   const jwtToken = getTokenFromEvent(event);
   

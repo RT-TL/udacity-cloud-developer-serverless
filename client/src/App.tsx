@@ -136,7 +136,7 @@ export default class App extends Component<AppProps, AppState> {
         />
 
         <Route
-          path="/todos/:todoId/edit"
+          path="/videos/:videoId/edit"
           exact
           render={props => {
             return <EditVideo {...props} auth={this.props.auth} />

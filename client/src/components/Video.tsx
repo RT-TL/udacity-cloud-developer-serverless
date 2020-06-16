@@ -1,17 +1,11 @@
 import dateFormat from 'dateformat'
 import { History } from 'history'
-//import update from 'immutability-helper'
-import ReactPlayer from 'react-player'
 import * as React from 'react'
+import VideoCard from './VideoCard'
+
 import {
-  Button,
-  Checkbox,
-  Divider,
   Grid,
   Header,
-  Icon,
-  Input,
-  Image,
   Loader
 } from 'semantic-ui-react'
 
@@ -92,46 +86,9 @@ export class Videos extends React.PureComponent<VideosProps, VideosState> {
   renderVideoList() {
     return (
       <Grid padded>
-        {this.state.videos.map((video, pos) => {
+        {this.state.videos.map((video) => {
           return (
-            <Grid.Row key={video.videoId}>
-              <Grid.Column width={1} verticalAlign="middle">
-                <Checkbox
-                  //onChange={() => this.onTodoCheck(pos)}
-                  checked={video.public}
-                />
-              </Grid.Column>
-              <Grid.Column width={10} verticalAlign="middle">
-                {video.name}
-              </Grid.Column>
-              <Grid.Column width={16} floated="left">
-                {video.description}
-              </Grid.Column>
-              <Grid.Column width={1} floated="right">
-                <Button
-                  icon
-                  color="blue"
-                  onClick={() => this.onEditButtonClick(video.videoId)}
-                >
-                  <Icon name="pencil" />
-                </Button>
-              </Grid.Column>
-              <Grid.Column width={1} floated="right">
-                <Button
-                  icon
-                  color="red"
-                  onClick={() => this.onVideoDelete(video.videoId)}
-                >
-                  <Icon name="delete" />
-                </Button>
-              </Grid.Column>
-              {video.url && (
-                <ReactPlayer url={video.url} />
-              )}
-              <Grid.Column width={16}>
-                <Divider />
-              </Grid.Column>
-            </Grid.Row>
+            <VideoCard video={video} />
           )
         })}
       </Grid>
