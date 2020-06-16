@@ -1,7 +1,7 @@
 {
-  "name": "serverless-todo-app",
+  "name": "serverless-video-sharing-app",
   "version": "1.0.0",
-  "description": "Serverless TODO image app",
+  "description": "Serverless video sharing app",
   "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/http-errors": "^1.6.1",
@@ -23,6 +23,7 @@
     "serverless-dynamodb-local": "^0.2.39",
     "serverless-iam-roles-per-function": "^1.0.4",
     "serverless-offline": "^6.4.0",
+    "serverless-offline-localstack": "^0.0.3",
     "serverless-plugin-canary-deployments": "^0.4.7",
     "serverless-reqvalidator-plugin": "^1.0.3",
     "serverless-s3-local": "^0.6.2",
@@ -31,6 +32,6 @@
     "typescript": "^3.4.1",
     "webpack": "^4.29.6"
   },
-  "author": "Ivan Mushketyk",
+  "author": "Tobias Lange",
   "license": "MIT"
 }

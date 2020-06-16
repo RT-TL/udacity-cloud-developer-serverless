@@ -1,22 +1,14 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "todo",
+    "title": "video",
     "type": "object",
     "properties": {
-        "name": {
-            "type": "string"
-        },
-        "dueDate": {
-            "type": "string"
-        },
-        "done": {
+        "public": {
             "type": "boolean"
         }
     },
     "required": [
-        "name",
-        "dueDate",
-        "done"
+        "public"
     ],
     "additionalProperties": false
   }

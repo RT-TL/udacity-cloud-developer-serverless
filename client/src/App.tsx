@@ -4,9 +4,11 @@ import { Grid, Menu, Segment } from 'semantic-ui-react'
 
 import Auth from './auth/Auth'
 import { EditTodo } from './components/EditTodo'
+import { CreateVideo } from './components/CreateVideo'
 import { LogIn } from './components/LogIn'
 import { NotFound } from './components/NotFound'
-import { Todos } from './components/Todos'
+import { MyVideos } from './components/MyVideos'
+import { PublicVideos } from './components/PublicVideos'
 
 export interface AppProps {}
 
@@ -57,7 +59,13 @@ export default class App extends Component<AppProps, AppState> {
     return (
       <Menu>
         <Menu.Item name="home">
-          <Link to="/">Home</Link>
+          <Link to="/">Home</Link> 
+        </Menu.Item>
+        <Menu.Item name="home">
+          <Link to="/myVideos">My Videos</Link> 
+        </Menu.Item>
+        <Menu.Item name="create">
+          <Link to="/createVideo">Create Video</Link>
         </Menu.Item>
 
         <Menu.Menu position="right">{this.logInLogOutButton()}</Menu.Menu>
@@ -92,7 +100,23 @@ export default class App extends Component<AppProps, AppState> {
           path="/"
           exact
           render={props => {
-            return <Todos {...props} auth={this.props.auth} />
+            return <PublicVideos {...props} auth={this.props.auth} />
+          }}
+        />
+
+      <Route
+        path="/myvideos"
+        exact
+        render={props => {
+          return <MyVideos {...props} auth={this.props.auth} />
+        }}
+      />
+
+        <Route
+          path="/createVideo"
+          exact
+          render={props => {
+            return <CreateVideo {...props} auth={this.props.auth} />
           }}
         />
 

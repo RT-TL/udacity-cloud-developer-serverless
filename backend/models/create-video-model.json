@@ -6,10 +6,13 @@
       "name": {
         "type": "string"
       },
-      "dueDate": {
+      "description": {
         "type": "string"
+      },
+      "public": {
+        "type": "boolean"
       }
     },
-    "required": ["name", "dueDate"],
+    "required": ["name", "public", "video"],
     "additionalProperties": false
   }

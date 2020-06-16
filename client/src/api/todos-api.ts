@@ -1,8 +1,10 @@
 import { apiEndpoint } from '../config'
 import { Todo } from '../types/Todo';
+import { Video } from '../types/Video';
 import { CreateTodoRequest } from '../types/CreateTodoRequest';
+import { CreateVideoRequest } from '../types/CreateVideoRequest';
 import Axios from 'axios'
-import { UpdateTodoRequest } from '../types/UpdateTodoRequest';
+import { UpdateVideoRequest } from '../types/UpdateVideoRequest';
 
 export async function getTodos(idToken: string): Promise<Todo[]> {
   console.log('Fetching todos')
@@ -17,25 +19,41 @@ export async function getTodos(idToken: string): Promise<Todo[]> {
   return response.data.items
 }
 
-export async function createTodo(
-  idToken: string,
-  newTodo: CreateTodoRequest
-): Promise<Todo> {
-  const response = await Axios.post(`${apiEndpoint}/todos`,  JSON.stringify(newTodo), {
+export async function getMyVideos(idToken: string): Promise<Video[]> {
+  console.log('Fetching videos')
+
+  const response = await Axios.get(`${apiEndpoint}/videos`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    },
+  })
+  console.log('Videos:', response.data)
+  return response.data.items
+}
+
+export async function createVideo(idToken: string, newVideo: CreateVideoRequest, file: Buffer): Promise<Video> {
+  // Send newVideo
+  const response = await Axios.post(`${apiEndpoint}/videos`,  JSON.stringify(newVideo), {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
     }
   })
+
+  // Receive back the upload URL and upload video file
+  uploadFile(response.data.item.uploadUrl, file)
+
   return response.data.item
 }
 
-export async function patchTodo(
+
+export async function patchVideo(
   idToken: string,
-  todoId: string,
-  updatedTodo: UpdateTodoRequest
+  videoId: string,
+  updatedVideo: UpdateVideoRequest
 ): Promise<void> {
-  await Axios.patch(`${apiEndpoint}/todos/${todoId}`, JSON.stringify(updatedTodo), {
+  await Axios.patch(`${apiEndpoint}/videos/${videoId}`,  JSON.stringify(updatedVideo), {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
@@ -43,11 +61,11 @@ export async function patchTodo(
   })
 }
 
-export async function deleteTodo(
+export async function deleteVideo(
   idToken: string,
-  todoId: string
+  videoId: string
 ): Promise<void> {
-  await Axios.delete(`${apiEndpoint}/todos/${todoId}`, {
+  await Axios.delete(`${apiEndpoint}/videos/${videoId}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`

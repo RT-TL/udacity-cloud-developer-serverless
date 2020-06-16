@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
-import { TodoItem } from '../models/TodoItem';
-import { TodoUpdate } from '../models/TodoUpdate';
+import { VideoItem } from '../models/VideoItem';
+import { VideoUpdate } from '../models/VideoUpdate';
 
 function createDynamoDBClient(): DocumentClient {
   if (process.env.IS_OFFLINE) {
@@ -14,16 +14,16 @@ function createDynamoDBClient(): DocumentClient {
   return new AWS.DynamoDB.DocumentClient();
 }
 
-export class TodoAccessModel {
+export class VideoAccessModel {
   public constructor(
     private readonly documentClient: DocumentClient = createDynamoDBClient(),
-    private readonly todosTable = process.env.TODOS_TABLE,
+    private readonly videosTable = process.env.VIDEOS_TABLE,
   ) { }
 
-  public async all(userId: string): Promise<TodoItem[]> {
+  public async all(userId?: string): Promise<VideoItem[]> {
     const result = await this.documentClient
       .query({
-        TableName: this.todosTable,
+        TableName: this.videosTable,
         KeyConditionExpression: 'userId = :userId',
         ExpressionAttributeValues: {
           ':userId': userId,
@@ -32,54 +32,55 @@ export class TodoAccessModel {
       .promise();
 
     const items = result.Items;
-    return items as TodoItem[];
+    return items as VideoItem[];
   }
 
-  public async get(todoId: string, userId: string): Promise<TodoItem> {
+
+  public async get(videoId: string, userId: string): Promise<VideoItem> {
     const result = await this.documentClient
       .query({
-        TableName: this.todosTable,
-        KeyConditionExpression: 'todoId = :todoId and userId = :userId',
+        TableName: this.videosTable,
+        KeyConditionExpression: 'videoId = :videoId and userId = :userId',
         ExpressionAttributeValues: {
-          ':todoId': todoId,
+          ':videoId': videoId,
           ':userId': userId,
         },
       })
       .promise();
 
     const item = result.Items[0];
-    return item as TodoItem;
+    return item as VideoItem;
   }
 
-  public async create(todoItem: TodoItem): Promise<TodoItem> {
+  public async create(videoItem: VideoItem): Promise<VideoItem> {
     await this.documentClient
       .put({
-        TableName: this.todosTable,
-        Item: todoItem,
+        TableName: this.videosTable,
+        Item: videoItem,
       })
       .promise();
 
-    return todoItem;
+    return videoItem;
   }
 
   public async update(
-    todoId: string,
+    videoId: string,
     createdAt: string,
-    todoUpdate: TodoUpdate,
+    videoUpdate: VideoUpdate,
   ): Promise<void> {
     this.documentClient
       .update({
-        TableName: this.todosTable,
+        TableName: this.videosTable,
         Key: {
-          todoId,
+          videoId,
           createdAt,
         },
         UpdateExpression:
-          'set #n = :name, done = :done, dueDate = :dueDate',
+          'set #n = :name, public = :public, description = :description',
         ExpressionAttributeValues: {
-          ':name': todoUpdate.name,
-          ':done': todoUpdate.done,
-          ':dueDate': todoUpdate.dueDate,
+          ':name': videoUpdate.name,
+          ':description': videoUpdate.description,
+          ':public': videoUpdate.public,
         },
         ExpressionAttributeNames: {
           '#n': 'name', 
@@ -90,15 +91,15 @@ export class TodoAccessModel {
   }
 
   public async setAttachmentUrl(
-    todoId: string,
+    videoId: string,
     userId: string,
     attachmentUrl: string,
   ): Promise<void> {
     this.documentClient
       .update({
-        TableName: this.todosTable,
+        TableName: this.videosTable,
         Key: {
-          todoId,
+          videoId,
           userId,
         },
         UpdateExpression: 'set attachmentUrl = :attachmentUrl',
@@ -110,13 +111,13 @@ export class TodoAccessModel {
       .promise();
   }
 
-  public async delete(todoId: string, userId: string): Promise<void> {
+  public async delete(videoId: string, userId: string): Promise<void> {
     this.documentClient
       .delete({
-        TableName: this.todosTable,
+        TableName: this.videosTable,
         Key: {
           userId,
-          todoId,
+          videoId,
         },
       })
       .promise();

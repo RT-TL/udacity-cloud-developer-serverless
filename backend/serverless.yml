@@ -1,8 +1,9 @@
 service:
-  name: serverless-todo-app
+  name: sls-video-app-cap
 
 plugins:
   - serverless-webpack
+  - serverless-offline-localstack
   - serverless-iam-roles-per-function
   - serverless-dynamodb-local
   - serverless-offline
@@ -17,10 +18,9 @@ provider:
   region: ${opt:region, 'us-east-2'}
 
   environment:
-      TODOS_TABLE: Todos-${self:provider.stage}
-      USERID_INDEX: UserIdIndex
-      ATTACHMENTS_BUCKET: rttl-serverless-todos-attachment-${self:provider.stage}
-      SIGNED_URL_EXPIRATION: 300
+      VIDEOS_TABLE: Videos-${self:provider.stage}
+      VIDEOS_BUCKET: rttl-serverless-videos-${self:provider.stage}
+      SIGNED_URL_EXPIRATION: 500
 
   iamRoleStatements:
     - Effect: Allow
@@ -34,6 +34,9 @@ custom:
     host: 0.0.0.0
     port: 4000
     httpPort: 3333
+    endpoints: 
+      S3: http://localhost:4572
+      DynamoDB: http://localhost:4569
   
   dynamodb:
     stages:
@@ -41,13 +44,13 @@ custom:
     start:
       migrate: true
       noStart: true
-      host: localstack
+      host: http://localhost
       port: 4569
   
   s3:
+    host: http://localhost
     noStart: true
     port: 4572
-    host: localstack
     directory: /tmp
   
   serverless-iam-roles-per-function:
@@ -57,86 +60,124 @@ custom:
     api:
       info:
         version: v1.0.0
-        title: Todo API
+        title: Video Platform API
         description: serverless app
     models:
-      - name: CreateTodo
+      - name: CreateVideo
         contentType: application/json
-        schema: ${file(./models/create-todo-model.json)}
-      - name: UpdateTodo
+        schema: ${file(./models/create-video-model.json)}
+      - name: UpdateVideo
         contentType: application/json
-        schema: ${file(./models/update-todo-model.json)}
-
+        schema: ${file(./models/update-video-model.json)}
+      - name: PublishVideo
+        contentType: application/json
+        schema: ${file(./models/publish-video-model.json)}
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  # TODO: Configure this function
-  GetTodos:
-    handler: src/lambda/http/getTodos.handler
+  GetVideos:
+    handler: src/lambda/http/getPrivateVideos.handler
     events:
       - http:
           method: get
-          path: todos
+          path: videos
           cors: true
           authorizer: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
 
-  CreateTodos:
-    handler: src/lambda/http/createTodo.handler
+  GetPublicVideos:
+    handler: src/lambda/http/getPublicVideos.handler
+    events:
+      - http:
+          method: get
+          path: publicVideos
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
+
+  CreateVideo:
+    handler: src/lambda/http/createVideo.handler
     events:
       - http:
           method: post
-          path: todos
+          path: videos
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
           documentation:
-            summary: Add new todo
-            description: add new todo
+            summary: Add new video
+            description: add new video
             requestModels:
-              'application/json': CreateTodo
+              'application/json': CreateVideo
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+        Resource: arn:aws:s3:::${self:provider.environment.VIDEOS_BUCKET}:/*  
 
-  # TODO: Configure this function
-  UpdateTodo:
-    handler: src/lambda/http/updateTodo.handler
+  UpdateVideo:
+    handler: src/lambda/http/updateVideo.handler
     events:
       - http:
           method: patch
-          path: todos/{todoId}
+          path: videos/{videoId}
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
           documentation:
-            summary: update todo
-            description: update todo
+            summary: update video
+            description: update video
             requestModels:
-              'application/json': UpdateTodo
+              'application/json': UpdateVideo
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
           - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
+     
+  PublishVideo:
+    handler: src/lambda/http/updateVideo.handler
+    events:
+      - http:
+          method: patch
+          path: videos/{videoId}/publish
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestValidator
+          documentation:
+            summary: Publish video
+            description: makes a video resource poublicly available
+            requestModels:
+              'application/json': PublishVideo
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
       
 
-  # TODO: Configure this function
-  DeleteTodo:
-    handler: src/lambda/http/deleteTodo.handler
+  DeleteVideo:
+    handler: src/lambda/http/deleteVideo.handler
     events:
       - http:
           method: delete
-          path: todos/{todoId}
+          path: videos/{videoId}
           cors: true
           authorizer: Auth
     iamRoleStatements:
@@ -144,30 +185,7 @@ functions:
         Action:
           - dynamodb:DeleteItem
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-    
-  # TODO: Configure this function
-  GenerateUploadUrl:
-    handler: src/lambda/http/generateUploadUrl.handler
-    events:
-      - http:
-          method: post
-          path: todos/{todoId}/attachment
-          cors: true
-          authorizer: Auth
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      - Effect: Allow
-        Action:
-          - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      - Effect: Allow
-        Action:
-          - s3:PutObject
-        Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*  
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
   
 resources:
   Resources:
@@ -193,26 +211,26 @@ resources:
         ValidateRequestBody: true
         ValidateRequestParameters: false
 
-    TodosDynamoDBTable:
+    VideosDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
-          - AttributeName: todoId
+          - AttributeName: videoId
             AttributeType: S
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
-          - AttributeName: todoId
+          - AttributeName: videoId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.TODOS_TABLE}
+        TableName: ${self:provider.environment.VIDEOS_TABLE}
 
-    AttachmentsBucket:
+    VideosBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:provider.environment.ATTACHMENTS_BUCKET}
+        BucketName: ${self:provider.environment.VIDEOS_BUCKET}
         CorsConfiguration:
           CorsRules:
             -
@@ -227,18 +245,20 @@ resources:
                 - DELETE
                 - HEAD
               MaxAge: 3000
-
+          
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
         PolicyDocument:
-          Id: UdacityAttachmentBucketPolicy
+          Id: RttlVideoBucketPolicy
           Version: "2012-10-17"
           Statement:
             - Sid: PublicReadForGetBucketObjects
               Effect: Allow
               Principal: '*'
-              Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*'
-        Bucket: !Ref AttachmentsBucket
+              Action: 
+                - s3:GetObject
+                - s3:PutObject
+              Resource: 'arn:aws:s3:::${self:provider.environment.VIDEOS_BUCKET}/*'
+        Bucket: !Ref VideosBucket
 

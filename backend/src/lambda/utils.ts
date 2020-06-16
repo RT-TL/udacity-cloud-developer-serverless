@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { parseUserId } from "../auth/utils";
 
-const bucketName = process.env.ATTACHMENTS_BUCKET
+const bucketName = process.env.VIDEOS_BUCKET
 
 /**
  * Get a user id from an API Gateway event
@@ -17,6 +17,6 @@ export function getUserId(event: APIGatewayProxyEvent): string {
   return parseUserId(jwtToken)
 }
 
-export function getImageBucketUrl(imgId) {
-  return `https://${bucketName}.s3.amazonaws.com/${imgId}`
+export function getImageBucketUrl(id) {
+  return `https://${bucketName}.s3.amazonaws.com/${id}`
 }
