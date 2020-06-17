@@ -10,16 +10,16 @@ plugins:
   - serverless-reqvalidator-plugin
   - serverless-s3-local
 
-tracing:
-  lambda: true
-  apiGateway: true
-
 provider:
   name: aws
   runtime: nodejs10.x
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-2'}
+
+  tracing:
+    lambda: true
+    apiGateway: true
 
   environment:
       VIDEOS_TABLE: rttl-Videos-${self:provider.stage}
@@ -95,6 +95,10 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}/index/${self:provider.environment.VIDEO_INDEX}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
   
   GetVideos:
     handler: src/lambda/http/getPrivateVideos.handler
@@ -109,6 +113,10 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
 
   GetPublicVideos:
     handler: src/lambda/http/getPublicVideos.handler
@@ -122,6 +130,10 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}/index/${self:provider.environment.PUBLIC_INDEX}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
 
   CreateVideo:
     handler: src/lambda/http/createVideo.handler
@@ -147,7 +159,10 @@ functions:
         Action:
           - s3:PutObject
         Resource: arn:aws:s3:::${self:provider.environment.VIDEOS_BUCKET}:/*  
-
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
   UpdateVideo:
     handler: src/lambda/http/updateVideo.handler
     events:
@@ -168,7 +183,11 @@ functions:
           - dynamodb:Query
           - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
-     
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
+
   UnpublishVideo:
     handler: src/lambda/http/unpublishVideo.handler
     events:
@@ -186,7 +205,10 @@ functions:
           - dynamodb:Query
           - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
-    
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
 
   PublishVideo:
     handler: src/lambda/http/publishVideo.handler
@@ -205,7 +227,10 @@ functions:
           - dynamodb:Query
           - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
-      
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
 
   DeleteVideo:
     handler: src/lambda/http/deleteVideo.handler
@@ -221,7 +246,11 @@ functions:
           - dynamodb:DeleteItem
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.VIDEOS_TABLE}
-  
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: '*'
+
 resources:
   Resources:
     
