@@ -1,10 +1,12 @@
 import * as AWS from 'aws-sdk';
-import { DocumentClient } from 'aws-sdk/clients/dynamodb';
-import { VideoItem } from '../models/VideoItem';
-import { VideoUpdate } from '../models/VideoUpdate';
+import { DocumentClient } from 'aws-sdk/clients/dynamodb'
+import { VideoItem } from '../models/VideoItem'
+import { VideoUpdate } from '../models/VideoUpdate'
+const AWSXRay = require('aws-xray-sdk')
 
 const PUBLIC_INDEX = process.env.PUBLIC_INDEX
 const VIDEO_INDEX = process.env.VIDEO_INDEX
+const XAWS = AWSXRay.captureAWS(AWS);
 
 function createDynamoDBClient(): DocumentClient {
   if (process.env.IS_OFFLINE) {
@@ -14,7 +16,7 @@ function createDynamoDBClient(): DocumentClient {
           sslEnabled: false,
       });
   }
-  return new AWS.DynamoDB.DocumentClient();
+  return new XAWS.DynamoDB.DocumentClient()
 }
 
 export class VideoAccessModel {

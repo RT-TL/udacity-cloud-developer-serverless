@@ -10,6 +10,10 @@ plugins:
   - serverless-reqvalidator-plugin
   - serverless-s3-local
 
+tracing:
+  lambda: true
+  apiGateway: true
+
 provider:
   name: aws
   runtime: nodejs10.x
